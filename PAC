@@ -1,0 +1,56 @@
+#include <stdio.h>
+
+static unsigned int PAC_fun(unsigned long long * point,int mode){
+    unsigned long long key = 0x4655434b434f4445;
+    unsigned long long tmphash=0;
+    unsigned long long finhash=0;
+    switch (mode)
+    {
+    case 0://32 bit-HASH
+        tmphash = ((key ^ *point));
+        *point += (tmphash&0xFF+(tmphash>>8)&0xFF+(tmphash>>16)&0xFF)<<24;
+        printf("Hash32 : %x \n",tmphash);
+        return 1;
+    case 1://64 bit-HASH
+        tmphash = ((key ^ *point));
+        *point += (tmphash&0xFF+(tmphash>>8)&0xFF+(tmphash>>16)&0xFF+(tmphash>>16)&0xFF00+(tmphash>>24)&0xFF00+(tmphash<<32)&0xFF00)<<56;
+        printf("Hash64 : %x \n",tmphash);
+        return 1;
+    case 2://32 bit-Verify
+        tmphash = ((*point)>>24)&0xff;
+        *point = *point & 0xffffff;
+        finhash = ((key ^ *point));
+        finhash = (finhash&0xFF+(finhash>>8)&0xFF+(finhash>>16)&0xFF)<<24;
+        if (tmphash == finhash){
+            return 1;
+        }else
+        {
+            return 0;
+        }
+    case 3://64 bit-Verify
+        tmphash = ((*point)>>48)&0xffffff;
+        *point = *point & 0xffffffffffff;
+        finhash = ((key ^ *point));
+        finhash = (finhash&0xFF+(finhash>>8)&0xFF+(finhash>>16)&0xFF+(finhash>>16)&0xFF00+(finhash>>24)&0xFF00+(finhash<<32)&0xFF00)<<56;
+        if (tmphash == finhash){
+            return 1;
+        }else
+        {
+            return 0;
+        }
+    default:
+        break;
+    }
+    return 0;
+}
+
+
+void main(){
+    long long point = 0x3312334989;
+    unsigned int ret =0;
+    ret = PAC_fun(&point,1);
+    printf("This point After is 0x%x \n",point);
+    ret = PAC_fun(&point,3);
+    printf("This check si %d ,point =%x \n",ret,point);
+    return;
+}
